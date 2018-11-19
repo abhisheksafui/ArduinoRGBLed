@@ -1,0 +1,12 @@
+{
+    "name": "ArduinoRGBLed",
+    "keywords": "RGB, arduino",
+    "description": "Arduino RGB led library",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/abhisheksafui/ArduinoRGBLed"
+    },
+    "frameworks": "arduino",
+    "platforms": "*"
+}
