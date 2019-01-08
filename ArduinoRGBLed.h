@@ -5,21 +5,30 @@
  *      Author: abhi
  */
 
-#ifndef RGB_H_
-#define RGB_H_
+#ifndef ARDUINORGBLED_H_
+#define ARDUINORGBLED_H_
 
 #include<inttypes.h>
 #include <math.h>
 #include <Arduino.h>
+#include <ArduinoList.h>
 
 #define PWM_MAX 1024
 
+extern "C" {
+#include "user_interface.h"
+}
+
+/**
+ * These should be moved to Animator
+ */
 typedef enum {
-	RGB_RANDOM,
-	RGB_PWM,
-	RGB_CONSTANT,
-	RGB_DROWSY
+
+	RGB_DROWSY,
+  RGB_NONE
+
 }RGB_MODE;
+
 
 typedef enum{
 	RGB_VIOLET,
@@ -31,8 +40,11 @@ typedef enum{
 	RGB_RED,
 	RGB_WHITE
 }RGB_COLOR;
-class RGB {
+
+class ArduinoRGBLed {
 public:
+
+  static ArduinoList<ArduinoRGBLed *> _rgbLeds;
 	/*
 	 * Desired color and mode
 	 */
@@ -64,10 +76,11 @@ public:
 	uint8_t blue_pin;
 
 	//HardwareTimer *timer;
+  static os_timer_t* fsmTimer;
 	uint32_t fsm_period_ms;
 
 
-	RGB(uint8_t red_p,uint8_t green_p,uint8_t blue_p,uint32_t fsm_ms=20);
+	ArduinoRGBLed(uint8_t red_p,uint8_t green_p,uint8_t blue_p,uint32_t fsm_ms=20);
 	void setMode(RGB_MODE mode) { this->mode = mode; }
 	void setBrightness(float b) { brightness = b; }
 
@@ -76,9 +89,10 @@ public:
 
 	RGB_COLOR getColor() { return color; }
 
-	void fsm(void);
+  static void timerCallback(void *arg);
 
 private:
+	void fsm(void);             /** Called by timer callback **/
 	int getTransitionSteps();
 
 };
@@ -104,4 +118,4 @@ private:
 }*/
 
 
-#endif /* RGB_H_ */
+#endif /* ARDUINORGBLED_H_ */

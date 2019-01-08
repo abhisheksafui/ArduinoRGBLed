@@ -1,4 +1,6 @@
-#include <RGBLed.h>
+
+
+#include <ArduinoRGBLed.h>
 #include <FS.h>
 #include<ESP8266WiFi.h>
 #include <ArduinoOTA.h>
@@ -24,18 +26,13 @@ extern "C" {
 WiFiEventHandler onConnectHandler;
 WiFiEventHandler onDisconnectHandler;
 AsyncUDP udp;
-RGB led(RED, GREEN, BLUE);
+ArduinoRGBLed led(RED, GREEN, BLUE);
 LED system_led(2, ACTIVE_LOW);
 
 int led_blink_time = 1000;
 
-os_timer_t statusTimer;
 int lastUpdate = 0;
-void statusTimerCallback(void *arg)
-{
-  /* increment a timer every second */
-  led.fsm();
-}
+
 
 
 void setup() {
@@ -75,8 +72,6 @@ void setup() {
   /* Setup ota based on read configuration */
   otaSetup();
 
-  os_timer_setfn(&statusTimer, statusTimerCallback, NULL);
-  os_timer_arm(&statusTimer, 20, true);
 
   // Add your initialization code here
   led.setMode(RGB_DROWSY);

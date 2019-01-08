@@ -4,7 +4,7 @@
  *  Created on: 22-Jan-2017
  *      Author: abhi
  */
-#include "RGBLed.h"
+#include "ArduinoRGBLed.h"
 
 
 /*
@@ -13,7 +13,20 @@
  * Parameters: pins for leds
  */
 
-RGB::RGB(uint8_t red_p,uint8_t green_p,uint8_t blue_p,uint32_t fsm_ms){
+ArduinoRGBLed::ArduinoRGBLed(uint8_t red_p,uint8_t green_p,uint8_t blue_p,uint32_t fsm_ms){
+
+    /**
+     * If timer is not initialised then set the timer
+     */
+    _rgbLeds.push_back(this);
+    if(_rgbLeds.size() == 1)
+    {
+      /** Load timer to refresh all leds periodically **/
+      fsmTimer = new os_timer_t;
+      os_timer_setfn(fsmTimer, timerCallback, NULL);
+      os_timer_arm(fsmTimer, fsm_ms, true); 
+    }
+
 		red_pin = red_p;
 		green_pin = green_p;
 		blue_pin = blue_p;
@@ -21,7 +34,7 @@ RGB::RGB(uint8_t red_p,uint8_t green_p,uint8_t blue_p,uint32_t fsm_ms){
 		red_pwm = green_pwm = blue_pwm = 0;
 
 		red = blue = green = 0;
-		mode = RGB_CONSTANT;
+		mode = RGB_NONE;
 		/*
 		 * init pins
 		 */
@@ -48,7 +61,17 @@ RGB::RGB(uint8_t red_p,uint8_t green_p,uint8_t blue_p,uint32_t fsm_ms){
 		drowsy_period_ms = 2000;
 
 }
-void RGB::setColor(uint8_t red, uint8_t green, uint8_t blue,int transit_time_ms){
+
+void ArduinoRGBLed::timerCallback(void *arg)
+{
+  for(auto it=_rgbLeds.begin(); it!=_rgbLeds.end(); it++)
+  {
+    ArduinoRGBLed *led = *it;
+    led->fsm();
+  }
+}
+
+void ArduinoRGBLed::setColor(uint8_t red, uint8_t green, uint8_t blue,int transit_time_ms){
 /*
  * set final color
  */
@@ -85,7 +108,7 @@ void RGB::setColor(uint8_t red, uint8_t green, uint8_t blue,int transit_time_ms)
 
 }
 
-void RGB::setColor(RGB_COLOR cl,int transit_time_ms){
+void ArduinoRGBLed::setColor(RGB_COLOR cl,int transit_time_ms){
 /*
  * set final color
  */
@@ -158,11 +181,11 @@ void RGB::setColor(RGB_COLOR cl,int transit_time_ms){
 
 }
 
-int RGB::getTransitionSteps(){
+int ArduinoRGBLed::getTransitionSteps(){
 	return (state_transition_time_ms/fsm_period_ms);
 }
 
-void RGB::fsm(){
+void ArduinoRGBLed::fsm(){
 	int tmp_r, tmp_g, tmp_b;
 
 	if(mode == RGB_DROWSY){
@@ -177,7 +200,6 @@ void RGB::fsm(){
 			brightness_change_per_step = 1.0/(drowsy_period_ms/fsm_period_ms)*0.3;
 			brightness = 0.0;
 		}
-
 
 		Serial.print("\nbrightness");Serial.println(brightness);
 	}
@@ -237,5 +259,6 @@ void RGB::fsm(){
 
 }
 
-
+os_timer_t* ArduinoRGBLed::fsmTimer = nullptr;
+ArduinoList<ArduinoRGBLed *> ArduinoRGBLed::_rgbLeds;
 
